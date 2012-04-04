@@ -1,0 +1,262 @@
+2012-04-02T10:54:53+00:00 DEBUG (7): Array
+(
+    [url] => https://directo.gate.ee/xmlcore/farron_tehnika/transport/xmlcore.asp
+    [content_type] => text/xml
+    [http_code] => 200
+    [header_size] => 249
+    [request_size] => 549
+    [filetime] => -1
+    [ssl_verify_result] => 0
+    [redirect_count] => 0
+    [total_time] => 0.492367
+    [namelookup_time] => 0.1403
+    [connect_time] => 0.21976
+    [pretransfer_time] => 0.402266
+    [size_upload] => 405
+    [size_download] => 82
+    [speed_download] => 166
+    [speed_upload] => 822
+    [download_content_length] => 82
+    [upload_content_length] => 0
+    [starttransfer_time] => 0.492345
+    [redirect_time] => 0
+    [certinfo] => Array
+        (
+        )
+
+)
+
+2012-04-02T10:58:59+00:00 DEBUG (7): Array
+(
+    [url] => https://directo.gate.ee/xmlcore/farron_tehnika/transport/xmlcore.asp
+    [content_type] => text/xml
+    [http_code] => 200
+    [header_size] => 249
+    [request_size] => 435
+    [filetime] => -1
+    [ssl_verify_result] => 0
+    [redirect_count] => 0
+    [total_time] => 0.46404
+    [namelookup_time] => 0.142952
+    [connect_time] => 0.21887
+    [pretransfer_time] => 0.379915
+    [size_upload] => 291
+    [size_download] => 82
+    [speed_download] => 176
+    [speed_upload] => 627
+    [download_content_length] => 82
+    [upload_content_length] => 0
+    [starttransfer_time] => 0.464018
+    [redirect_time] => 0
+    [certinfo] => Array
+        (
+        )
+
+)
+
+2012-04-02T11:00:15+00:00 DEBUG (7): Array
+(
+    [url] => https://directo.gate.ee/xmlcore/farron_tehnika/transport/xmlcore.asp
+    [content_type] => text/xml
+    [http_code] => 200
+    [header_size] => 249
+    [request_size] => 397
+    [filetime] => -1
+    [ssl_verify_result] => 0
+    [redirect_count] => 0
+    [total_time] => 0.33944
+    [namelookup_time] => 2.0E-5
+    [connect_time] => 0.078069
+    [pretransfer_time] => 0.237318
+    [size_upload] => 253
+    [size_download] => 82
+    [speed_download] => 241
+    [speed_upload] => 745
+    [download_content_length] => 82
+    [upload_content_length] => 0
+    [starttransfer_time] => 0.339417
+    [redirect_time] => 0
+    [certinfo] => Array
+        (
+        )
+
+)
+
+2012-04-02T11:10:25+00:00 DEBUG (7): Array
+(
+    [url] => http://farron.e-stoniaweb.eu/i.php
+    [content_type] => text/html
+    [http_code] => 200
+    [header_size] => 164
+    [request_size] => 364
+    [filetime] => -1
+    [ssl_verify_result] => 0
+    [redirect_count] => 0
+    [total_time] => 1.326037
+    [namelookup_time] => 0.27158
+    [connect_time] => 0.271681
+    [pretransfer_time] => 0.271682
+    [size_upload] => 253
+    [size_download] => 10
+    [speed_download] => 7
+    [speed_upload] => 190
+    [download_content_length] => -1
+    [upload_content_length] => 0
+    [starttransfer_time] => 1.326013
+    [redirect_time] => 0
+    [certinfo] => Array
+        (
+        )
+
+)
+
+2012-04-02T11:11:51+00:00 DEBUG (7): Array
+(
+    [url] => http://farron.e-stoniaweb.eu/i.php
+    [content_type] => text/html
+    [http_code] => 200
+    [header_size] => 189
+    [request_size] => 195
+    [filetime] => -1
+    [ssl_verify_result] => 0
+    [redirect_count] => 0
+    [total_time] => 1.132501
+    [namelookup_time] => 0.106659
+    [connect_time] => 0.106768
+    [pretransfer_time] => 0.106772
+    [size_upload] => 561
+    [size_download] => 313
+    [speed_download] => 276
+    [speed_upload] => 495
+    [download_content_length] => -1
+    [upload_content_length] => 561
+    [starttransfer_time] => 0.107657
+    [redirect_time] => 0
+    [certinfo] => Array
+        (
+        )
+
+)
+
+2012-04-02T11:16:31+00:00 DEBUG (7): Array
+(
+    [url] => http://farron.e-stoniaweb.eu/i.php
+    [content_type] => text/html
+    [http_code] => 200
+    [header_size] => 189
+    [request_size] => 195
+    [filetime] => -1
+    [ssl_verify_result] => 0
+    [redirect_count] => 0
+    [total_time] => 0.291691
+    [namelookup_time] => 0.289563
+    [connect_time] => 0.289675
+    [pretransfer_time] => 0.289678
+    [size_upload] => 561
+    [size_download] => 313
+    [speed_download] => 1073
+    [speed_upload] => 1923
+    [download_content_length] => -1
+    [upload_content_length] => 561
+    [starttransfer_time] => 0.290577
+    [redirect_time] => 0
+    [certinfo] => Array
+        (
+        )
+
+)
+
+2012-04-02T11:18:14+00:00 DEBUG (7): Array
+(
+    [url] => https://directo.gate.ee/xmlcore/farron_tehnika/transport/xmlcore.asp
+    [content_type] => text/xml
+    [http_code] => 200
+    [header_size] => 274
+    [request_size] => 228
+    [filetime] => -1
+    [ssl_verify_result] => 0
+    [redirect_count] => 0
+    [total_time] => 0.831275
+    [namelookup_time] => 0.422297
+    [connect_time] => 0.500955
+    [pretransfer_time] => 0.662466
+    [size_upload] => 561
+    [size_download] => 82
+    [speed_download] => 98
+    [speed_upload] => 674
+    [download_content_length] => 82
+    [upload_content_length] => 561
+    [starttransfer_time] => 0.740619
+    [redirect_time] => 0
+    [certinfo] => Array
+        (
+        )
+
+)
+
+2012-04-02T11:24:29+00:00 DEBUG (7): Array
+(
+    [url] => https://directo.gate.ee/xmlcore/farron_tehnika/transport/xmlcore.asp
+    [content_type] => text/xml
+    [http_code] => 200
+    [header_size] => 274
+    [request_size] => 310
+    [filetime] => -1
+    [ssl_verify_result] => 0
+    [redirect_count] => 0
+    [total_time] => 0.620712
+    [namelookup_time] => 0.214914
+    [connect_time] => 0.292638
+    [pretransfer_time] => 0.452906
+    [size_upload] => 561
+    [size_download] => 82
+    [speed_download] => 132
+    [speed_upload] => 903
+    [download_content_length] => 82
+    [upload_content_length] => 561
+    [starttransfer_time] => 0.530749
+    [redirect_time] => 0
+    [certinfo] => Array
+        (
+        )
+
+)
+
+2012-04-02T11:26:26+00:00 DEBUG (7): 
+2012-04-02T11:28:33+00:00 DEBUG (7): POST /xmlcore/farron_tehnika/transport/xmlcore.asp HTTP/1.1
+Host: directo.gate.ee
+Accept: */*
+Referer: https://directo.gate.ee/xmlcore/farron_tehnika/transport/webupload.html
+Content-Length: 561
+Expect: 100-continue
+Content-Type: multipart/form-data; boundary=----------------------------0c90e2aa6a59
+
+
+2012-04-02T11:31:43+00:00 DEBUG (7): POST /xmlcore/farron_tehnika/transport/xmlcore.asp HTTP/1.1
+Host: directo.gate.ee
+Accept: */*
+Referer: https://directo.gate.ee/xmlcore/farron_tehnika/transport/webupload.html
+Content-Length: 561
+Expect: 100-continue
+Content-Type: multipart/form-data; boundary=----------------------------41eb0d9bccc7
+
+
+2012-04-02T11:35:12+00:00 DEBUG (7): POST /xmlcore/farron_tehnika/transport/xmlcore.asp HTTP/1.1
+Host: directo.gate.ee
+Accept: */*
+Referer: https://directo.gate.ee/xmlcore/farron_tehnika/transport/webupload.html
+Content-Length: 561
+Expect: 100-continue
+Content-Type: multipart/form-data; boundary=----------------------------108c67665c49
+
+
+2012-04-02T11:55:40+00:00 DEBUG (7): POST /xmlcore/farron_tehnika/transport/xmlcore.asp HTTP/1.1
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:11.0) Gecko/20100101 Firefox/11.0
+Host: directo.gate.ee
+Accept: */*
+Referer: https://directo.gate.ee/xmlcore/farron_tehnika/transport/webupload.html
+Content-Length: 561
+Expect: 100-continue
+Content-Type: multipart/form-data; boundary=----------------------------efde75afa0a1
+
+
