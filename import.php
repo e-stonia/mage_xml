@@ -1,5 +1,4 @@
 <?php
-
 @set_time_limit(0);
 @ignore_user_abort (true);
 
@@ -7,30 +6,39 @@ require_once 'app/Mage.php';
 
 Mage :: app();
 
-class ProductImport
+class Import
 {
-	private $products;
+        private $customers;
 	
 	private $date;
 	
 	private $key = '26DF1A27E6C9360D3247E1BDE43B30AF';
 	
-	private $url = 'https://directo.gate.ee/xmlcore/farron_tehnika/transport/xmlcore.asp?get=1&what=item';
+	private $product_url = 'https://directo.gate.ee/xmlcore/farron_tehnika/transport/xmlcore.asp?get=1&what=item';
+        
+        private $customer_url = 'https://directo.gate.ee/xmlcore/farron_tehnika/transport/xmlcore.asp?get=1&what=customer';
 	
-	private $response;
+	private $product_response;
+
+	private $customer_response;
 	
-	private $items;
+	private $product_items;
+
+	private $customer_items;
 	
 	private $cat;
 	
-	public function __construct( $products )
+	public function __construct( )
     {
-		$this->products = $products;
 		$this->date = date( 'd.m.Y' );
 		
-		$this->url = (isset($_GET['full']))
-						? $this->url."&key={$this->key}"
-						: $this->url."&ts={$this->date}&key={$this->key}";
+		$this->product_url = (isset($_GET['full']))
+						? $this->product_url."&key={$this->key}"
+						: $this->product_url."&ts={$this->date}&key={$this->key}";
+
+		$this->customer_url = (isset($_GET['full']))
+						? $this->customer_url."&key={$this->key}"
+						: $this->customer_url."&ts={$this->date}&key={$this->key}";
 						
 		//$this->url = $this->url."&ts=13.03.2012&key={$this->key}";
 		//$this->url = $this->url."&key={$this->key}";
@@ -64,7 +72,8 @@ class ProductImport
 		
 		if ($ch != false)
 		{
-			curl_setopt ( $ch, CURLOPT_URL, $this->url );
+                        /***PRODUCTS****/
+			curl_setopt ( $ch, CURLOPT_URL, $this->product_url );
 			curl_setopt ( $ch, CURLOPT_PORT , 443);
 			curl_setopt ( $ch, CURLOPT_RETURNTRANSFER, 1 );
 			curl_setopt ( $ch, CURLOPT_HEADER, 0 );
@@ -75,8 +84,14 @@ class ProductImport
 			
 			curl_setopt ( $ch, CURLOPT_HTTPHEADER, $header );
 			
-			$this->response = curl_exec ( $ch );
+			$this->product_response = curl_exec ( $ch );
 			if(curl_errno( $ch )) throw new Exception('Curl error: ' . curl_error( $ch ));
+                       
+                        /******CUSTOMERS*******/
+        		curl_setopt ( $ch, CURLOPT_URL, $this->customer_url );
+
+			$this->customer_response = curl_exec ( $ch );
+			if(curl_errno( $ch )) throw new Exception('Curl error: ' . curl_error( $ch ));                  
 			curl_close ( $ch );
 			
 			return true;
@@ -86,16 +101,18 @@ class ProductImport
 
 	public function parseResponse ()
 	{	
-		if (!$this->response) return false;
+		if (!$this->product_response && !$this->customer_response) return false;
 		//header('Content-Type: text/xml' );
 		//echo $this->response;
-		if (($this->items = simplexml_load_string ( $this->response )) == false) return false;
+		if (($this->product_items = simplexml_load_string ( $this->product_response )) == false) return false;
+		if (($this->customer_items = simplexml_load_string ( $this->customer_response )) == false) return false;
 		return true;
 	}
 
 	public function process ()
 	{	//echo 'process...<br>';
-		$data = (!empty($this->items->items->item)) ? $this->items->items->item : $this->items ;
+                /*****PRODUCTS******/
+		$data = (!empty($this->product_items->items->item)) ? $this->product_tems->items->item : $this->product_items ;
 		if (!$data) return false;
 		//echo 'search data...<br>';
 		$site = array(Mage::app()->getStore(true)->getWebsite()->getId());
@@ -167,10 +184,10 @@ class ProductImport
 					$product->setVisibility(4);
 					$new = true;
 				} 
-				else 
-				{}
 				//$product->setName( 'xname - '.$item->attributes()->name );
 				$product->setName( $item->attributes()->name );
+                                if((int)$item->attributes()->delivery_days >= 0)
+                                   $product->setDeliveryDays($item->attributes()->delivery_days);
 				$product->setPrice($item->attributes()->price);
 				$product->setStockData( array( 'is_in_stock' => $stock, 'qty' => $qty ) );
 				
@@ -198,12 +215,51 @@ class ProductImport
 				{}
 			} //break;
 		}
+                  
+                /******CUSTOMERS*******/
+             	$data = (!empty($this->customer_items->items->customer)) ? $this->customer_tems->items->customer : $this->customer_items ;
+		if (!$data) return false;
+                foreach($data as $item){
+                   $customer = null;
+                   if(!empty($item->attributes()->item))
+                     $customer = Mage::getModel('customer/customer')->loadByAttribute('code',$item->attributes()->code);
+                   if(!$customer)
+                     $customer = Mage::getModel('customer/customer');
+                   $customer->getGroupId();
+                   $name = explode(' ',$item->attributes()->name);
+                   if(isset($name[0]) && strlen($name) > 0)
+                      $customer->setFirstname($name[0]);
+                   else
+                      $customer->setFirstname('n/a');
+                    
+                   if(isset($name[1]) && strlen($name) > 0)
+                      $customer->setLastname($name[1]);
+                   else
+                      $customer->setLastname('n/a');
+                     
+                   if(!empty($item->attributes()->code))
+                    $customer->setCode($item->attributes()->code);   
+                   
+                   if(!empty($item->attributes()->balance))
+                    $customer->setBalance($item->attributes()->balance);
+                     
+                   if(!empty($item->attributes()->pricelist))
+                    $customer->setPricelist($item->attributes()->pricelist);
+                        
+                   if(!empty($item->attributes()->email))
+                    $customer->setEmail($item->attributes()->email);   
+                     
+                   $customer->setStoreId(Mage::app()->getStore(true)->getId())
+                            ->setWebsiteId(Mage::app()->getStore(true)->getWebsiteId());
+                      
+                   $customer->save();
+                }
 	}	
 	
 }
 
 
-$import = new ProductImport ( Mage::getModel('catalog/product') );
+$import = new Import ( );
 
 $import->loadData();
 
