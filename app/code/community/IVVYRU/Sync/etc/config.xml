@@ -6,12 +6,24 @@
     </IVVYRU_Sync> 
   </modules>
   <global>
+   <blocks>
+      <catalog>
+         <rewrite>
+           <navigation>IVVYRU_Sync_Block_Catalog_Navigation</navigation> 
+         </rewrite> 
+      </catalog> 
+   </blocks>
    <models>
       <catalog>
          <rewrite>
             <product_type_price>IVVYRU_Sync_Model_Catalog_Product_Type_Price</product_type_price> 
          </rewrite> 
       </catalog> 
+      <cataloginventory>
+         <rewrite>
+            <stock_item>IVVYRU_Sync_Model_CatalogInventory_Stock_Item</stock_item> 
+         </rewrite> 
+      </cataloginventory>
    </models>
    <resources>
      <ivvyrusync_setup>
@@ -43,6 +55,20 @@
           </modules> 
         </args> 
       </checkout>  
+      <customer>
+        <args>
+           <modules>
+             <IVVYRU_Sync before="Mage_Customer">IVVYRU_Sync_Customer</IVVYRU_Sync> 
+           </modules> 
+        </args> 
+      </customer>
     </routers> 
+    <layout>
+      <updates>
+         <ivvyrusync>
+            <file>ivvyrusync.xml</file> 
+         </ivvyrusync> 
+      </updates> 
+    </layout>
   </frontend>
 </config>
