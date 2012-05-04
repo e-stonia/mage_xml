@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<layout>
+  <default>
+    <reference name="left">
+      <block type="catalog/navigation" name="vertnav" template="ivvyrusync/vertnav.phtml"/> 
+    </reference> 
+    <reference name="top.menu">
+      <remove name="catalog.topnav"/> 
+    </reference>
+  </default>
+</layout>

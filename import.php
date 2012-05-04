@@ -66,7 +66,7 @@ class Import
 		} 
 	}
 	
-	public function loadData( $timeout = 300 ) 
+	public function loadData() 
 	{
 		$ch = curl_init ();
 		
@@ -77,7 +77,8 @@ class Import
 			curl_setopt ( $ch, CURLOPT_PORT , 443);
 			curl_setopt ( $ch, CURLOPT_RETURNTRANSFER, 1 );
 			curl_setopt ( $ch, CURLOPT_HEADER, 0 );
-			curl_setopt ( $ch, CURLOPT_TIMEOUT, ( int ) $timeout );
+	//		curl_setopt ( $ch, CURLOPT_CONNECTTIMEOUT, 0 );
+			curl_setopt ( $ch, CURLOPT_TIMEOUT, 3600 );
 			curl_setopt ( $ch, CURLOPT_SSL_VERIFYPEER, 0 );
 			
 			$header = array ('Content-Type: text/xml' );
@@ -86,44 +87,63 @@ class Import
 			
 			$this->product_response = curl_exec ( $ch );
 			if(curl_errno( $ch )) throw new Exception('Curl error: ' . curl_error( $ch ));
-                       
-                        /******CUSTOMERS*******/
-        		curl_setopt ( $ch, CURLOPT_URL, $this->customer_url );
-
-			$this->customer_response = curl_exec ( $ch );
-			if(curl_errno( $ch )) throw new Exception('Curl error: ' . curl_error( $ch ));                  
 			curl_close ( $ch );
+		}
+
+		$ct = curl_init ();
+		
+		if ($ct != false)
+		{
+                        /***CUSTOMERS****/
+			curl_setopt ( $ct, CURLOPT_URL, $this->customer_url );
+			curl_setopt ( $ct, CURLOPT_PORT , 443);
+			curl_setopt ( $ct, CURLOPT_RETURNTRANSFER, 1 );
+			curl_setopt ( $ct, CURLOPT_HEADER, 0 );
+		//	curl_setopt ( $ct, CURLOPT_CONNECTTIMEOUT, 0);
+			curl_setopt ( $ct, CURLOPT_TIMEOUT, 3600);
+			curl_setopt ( $ct, CURLOPT_SSL_VERIFYPEER, 0 );
+			
+			$header = array ('Content-Type: text/xml' );
+			
+			curl_setopt ( $ct, CURLOPT_HTTPHEADER, $header );
+			
+			$this->customer_response = curl_exec ( $ct );
+			if(curl_errno( $ct )) throw new Exception('Curl error: ' . curl_error( $ct ));                  
+			curl_close ( $ct );
 			
 			return true;
 		}
+
 		throw new Exception('Curl error: failure init.');
 	}
 
 	public function parseResponse ()
 	{	
+                libxml_use_internal_errors(true);
 		if (!$this->product_response && !$this->customer_response) return false;
-		//header('Content-Type: text/xml' );
-		//echo $this->response;
-		if (($this->product_items = simplexml_load_string ( $this->product_response )) == false) return false;
-		if (($this->customer_items = simplexml_load_string ( $this->customer_response )) == false) return false;
+		if (($this->product_items = simplexml_load_string($this->product_response,'SimpleXMLElement',LIBXML_PARSEHUGE | LIBXML_NOCDATA)) == false &&
+                    ($this->customer_items = simplexml_load_string ( $this->customer_response,'SimpleXMLElement',LIBXML_PARSEHUGE | LIBXML_NOCDATA)) == false)
+                {
+                   $errors = libxml_get_errors();
+                   foreach($errors as $err){
+                     echo $err->message().'<br/>';
+                   }   
+                }
 		return true;
 	}
 
-	public function process ()
-	{	//echo 'process...<br>';
+	public function process () {
                 /*****PRODUCTS******/
-		$data = (!empty($this->product_items->items->item)) ? $this->product_tems->items->item : $this->product_items ;
+		$data = (!empty($this->product_items->items->item)) ? $this->product_items->items->item : $this->product_items ;
 		if (!$data) return false;
-		//echo 'search data...<br>';
 		$site = array(Mage::app()->getStore(true)->getWebsite()->getId());
-		
+
+                $i = 0;
 		foreach ($data AS $item)
 		{
-			//echo '<pre>'.print_r($item->stocklevels[0]->stocklevel[0]->attributes()).'</pre>';
-			//echo $item->stocklevels->stocklevel->attributes()->level.'</br>';
-			//echo $item->attributes()->code.'</br>';
+                 //if(++$i == 10) break; 
+
 			$qty = 0;
-			
 			if (!empty($item->stocklevels))
 			{
 				foreach ($item->stocklevels AS $stocklevels)
@@ -135,16 +155,25 @@ class Import
 							$level = isset($stocklevel->attributes()->level) ? intval($stocklevel->attributes()->level) : 0;
 							$level = ( $level > 0 ) ? $level : 0 ;
 							$qty+= $level;			
-							//if (!empty($stocklevel->attributes()->stock) and $stocklevel->attributes()->stock == 'PL')
-							//{
-							//	$qty = isset($stocklevel->attributes()->level) ? intval($stocklevel->attributes()->level) : 0;
-							//}
 						}
 					}
 				}
 			}
+                         
+                        $priceFormula = array();
+
+                        if(!empty($item->prices))
+                             foreach($item->prices AS $prices)
+                                  foreach($prices->price as $price)
+                                         $priceFormula[] = array('formula' => (string)$price->attributes()->formula, 'price' => (string)$price->attributes()->price);
 			
-			//$qty = ( $qty > 0 ) ? $qty : 0 ;					
+                        $cats = array();
+
+                        if(!empty($item->datafields))
+                           foreach($item->datafields as $fields)
+                              foreach($fields->data as $field)
+                                     $cats[] = (string)$field->attributes()->content;
+
 			$stock = ( $qty > 0 ) ? 1 : 0 ;			
 							
 			if (!empty($item->attributes()->name))
@@ -153,53 +182,119 @@ class Import
 				$sku      = $item->attributes()->code;
 				$_product = Mage::getModel('catalog/product')->loadByAttribute('sku', $sku);
 				
-				if ( $_product )
+				if ( $_product && $_product->getId() > 0 )
 				{
-					//continue;
 					Mage :: app()->setCurrentStore( Mage_Core_Model_App::ADMIN_STORE_ID );
 					$id = $_product->getId();
 					$product = Mage::getModel('catalog/product')->load( $id );
-					Mage::dispatchEvent('catalog_controller_product_delete', array('product' => $product));
-					$product->setStoreIDs( 0 );
-					//$product->setWebsiteIds( $site );
-					$product->delete(); 
-					$product = null;
-					//$product->setStoreIDs( 0 );
-					//var_dump ($product->getAttributeSetId());
-					//$product->setAttributeSetId(9);
 				}
 				
 				if ( !$product ) 
 				{	
-					//echo 'new product sku='.$sku.'<br>';
 					$product = Mage::getModel('catalog/product');
 					$product->setSku( $item->attributes()->code );
 					if ( $id ) $product->setId( $id );
 					$product->setWebsiteIds( $site );
 					$product->setAttributeSetId(4);
-					//$product->setAttributeSetId(9); // local test
 					$product->setTypeId('simple');
 					$product->setStatus(1);
 					$product->setTaxClassId(0);
 					$product->setVisibility(4);
 					$new = true;
 				} 
-				//$product->setName( 'xname - '.$item->attributes()->name );
 				$product->setName( $item->attributes()->name );
                                 if((int)$item->attributes()->delivery_days >= 0)
                                    $product->setDeliveryDays($item->attributes()->delivery_days);
 				$product->setPrice($item->attributes()->price);
+                                $product->setWeight($item->attributes()->weight);
 				$product->setStockData( array( 'is_in_stock' => $stock, 'qty' => $qty ) );
+                                $product->setPriceFormula(serialize($priceFormula));
 				
-				if (!empty($item->attributes()->class))
-				{
-					$alias = strtolower(trim($item->attributes()->class));
-					if (isset($this->cat[$alias]))
-					{
-						$product->setCategoryIds(array($this->cat[$alias]));
-					}
-				}
-				
+                                /******CATEGORY HANDLING********/
+                                $_root_cat_model = Mage::getModel('catalog/category')->load(577);
+                                       
+                              if(count($cats) > 0){
+                                $firstlevel = Mage::getModel('catalog/category')->getCollection()
+                                                                                ->setStoreId(Mage::app()->getStore(true)->getId())
+                                                                                ->addAttributeToSelect('*')
+                                                                                ->addAttributeToFilter('name',$cats[0])
+                                                                                ->getFirstItem();
+
+                                if(!($firstlevel && $firstlevel->getId()>0)){
+                                   $firstlevel = Mage::getModel('catalog/category');
+                                   $firstlevel->setPath($_root_cat_model->getPath());
+                                }
+                               
+
+                                $firstlevel->setName($cats[0])
+                                           ->setIsActive(1);
+
+                                $firstlevel->save();
+                                  
+                                if(isset($cats[1]) && strlen($cats[1]) > 0){
+                                $secondlevel = Mage::getModel('catalog/category')->getCollection()
+                                                                                 ->setStoreId(Mage::app()->getStore(true)->getId())
+                                                                                 ->addAttributeToSelect('*')
+                                                                                 ->addAttributeToFilter('name',$cats[1])
+                                                                                 ->getFirstItem();
+                                  
+                                if(!($secondlevel && $secondlevel->getId()>0)){
+                                     $secondlevel = Mage::getModel('catalog/category');
+                                     $secondlevel->setPath($firstlevel->getPath());
+                                }
+                                   
+                                $secondlevel->setName($cats[1])
+                                            ->setIsActive(1);
+
+                                $secondlevel->save(); 
+                                      
+                                $thirdlevel = Mage::getModel('catalog/category')->getCollection()
+                                                                                 ->setStoreId(Mage::app()->getStore(true)->getId())
+                                                             ->addAttributeToSelect('*')
+                                                             ->addAttributeToFilter('name',$item->attributes()->class)
+                                                             ->getFirstItem();
+                               if(!($thirdlevel->getId()>0)){
+                                     $thirdlevel = Mage::getModel('catalog/category');
+                                     $thirdlevel->setPath($secondlevel->getPath());
+                               }
+                               $thirdlevel->setName($item->attributes()->class)
+                                               ->setIsActive(1);
+
+                              $thirdlevel->save();
+		              $product->setCategoryIds(array($firstlevel->getId(),$secondlevel->getId(),$thirdlevel->getId()));
+                              }else{
+                                  $secondlevel = Mage::getModel('catalog/category')->getCollection()
+                                                                                 ->setStoreId(Mage::app()->getStore(true)->getId())
+                                                             ->addAttributeToSelect('*')
+                                                             ->addAttributeToFilter('name',$item->attributes()->class) 
+                                                             ->getFirstItem();
+                                  if(!($secondlevel && $secondlevel->getId()>0)){
+                                     $secondlevel = Mage::getModel('catalog/category');
+                                     $secondlevel->setPath($firstlevel->getPath());
+                                  }
+                                      
+                                  $secondlevel->setName($item->attributes()->class)
+                                              ->setIsActive(1);
+                                  $secondlevel->save();
+                                  $product->setCategoryIds(array($firstlevel->getId(),$secondlevel->getId()));
+                                }
+                                }else{
+                                  if(!empty($item->attributes()->class)){
+                                    $maincat = Mage::getModel('catalog/category')->getCollection()
+                                                                                 ->setStoreId(Mage::app()->getStore(true)->getId())
+                                                             ->addAttributeToSelect('*')
+                                                             ->addAttributeToFilter('name',$item->attributes()->class)
+                                                             ->getFirstItem();
+                                    if(!($maincat && $maincat->getId()>0)){
+                                       $maincat = Mage::getModel('catalog/category');
+                                       $maincat->setPath($_root_cat_model->getPath());
+                                    }   
+                                    $maincat->setName($item->attributes()->class)
+                                            ->setIsActive(1);
+                                    $maincat->save();
+                                    $product->setCategoryIds(array($maincat->getId()));
+                                  } 
+                                }
 				if (!empty($item->attributes()->description))
 				{
 					$product->setDescription($item->attributes()->description);
@@ -209,30 +304,35 @@ class Import
 				try
 				{
 					$product->save();
-					//echo 'ok<br>';
 				}
 				catch (Exception $e)
 				{}
-			} //break;
+			} 
+                        Mage::log('['.++$i.'] product '.$product->getId().' imported');
 		}
-                  
+              
+                Mage::log('product import finished');
+
                 /******CUSTOMERS*******/
-             	$data = (!empty($this->customer_items->items->customer)) ? $this->customer_tems->items->customer : $this->customer_items ;
+             	$data = (!empty($this->customer_items->customers->customer)) ? $this->customer_items->customers->customer : $this->customer_items ;
+                   
 		if (!$data) return false;
+
                 foreach($data as $item){
+                   if(empty($item->attributes()->email))
+                     continue;
                    $customer = null;
-                   if(!empty($item->attributes()->item))
-                     $customer = Mage::getModel('customer/customer')->loadByAttribute('code',$item->attributes()->code);
-                   if(!$customer)
+                   $customer = Mage::getModel('customer/customer')->setWebsiteId(Mage::app()->getStore(true)->getWebsiteId())->loadByEmail($item->attributes()->email);
+                   if(!($customer && $customer->getId()>0))
                      $customer = Mage::getModel('customer/customer');
                    $customer->getGroupId();
                    $name = explode(' ',$item->attributes()->name);
-                   if(isset($name[0]) && strlen($name) > 0)
+                   if(isset($name[0]) && strlen($name[0]) > 0)
                       $customer->setFirstname($name[0]);
                    else
                       $customer->setFirstname('n/a');
                     
-                   if(isset($name[1]) && strlen($name) > 0)
+                   if(isset($name[1]) && strlen($name[1]) > 0)
                       $customer->setLastname($name[1]);
                    else
                       $customer->setLastname('n/a');
@@ -253,18 +353,28 @@ class Import
                             ->setWebsiteId(Mage::app()->getStore(true)->getWebsiteId());
                       
                    $customer->save();
+                   Mage::log('customer '.$customer->getId().' imported');
                 }
+                /****REINDEX*****/
+
+                $indexingProcesses = Mage::getSingleton('index/indexer')->getProcessesCollection(); 
+                foreach ($indexingProcesses as $process) {
+                         $process->reindexEverything();
+                }
+                Mage::log('customer import finished');
 	}	
 	
 }
 
-
+try{
 $import = new Import ( );
 
 $import->loadData();
 
 $import->parseResponse();
 
-//var_dump ($import);
 $import->process();
+}catch(Exception $e){die($e->getMessage());}
+
+echo 'done';
 
