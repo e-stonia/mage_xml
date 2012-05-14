@@ -1,6 +1,7 @@
 <?php
-@set_time_limit(0);
-@ignore_user_abort (true);
+
+set_time_limit(0);
+ignore_user_abort (true);
 
 require_once 'app/Mage.php';
 
@@ -33,10 +34,12 @@ class Import
 		$this->date = date( 'd.m.Y' );
 		
 		$this->product_url = (isset($_GET['full']))
+	//	$this->product_url = (1)
 						? $this->product_url."&key={$this->key}"
 						: $this->product_url."&ts={$this->date}&key={$this->key}";
 
 		$this->customer_url = (isset($_GET['full']))
+	//	$this->customer_url = (1)
 						? $this->customer_url."&key={$this->key}"
 						: $this->customer_url."&ts={$this->date}&key={$this->key}";
 						
@@ -141,7 +144,7 @@ class Import
                 $i = 0;
 		foreach ($data AS $item)
 		{
-                 //if(++$i == 10) break; 
+                 //if(++$i > 10) break; 
 
 			$qty = 0;
 			if (!empty($item->stocklevels))
@@ -189,6 +192,7 @@ class Import
 					$product = Mage::getModel('catalog/product')->load( $id );
 				}
 				
+                                //if($_product->getId() < 950) continue;
 				if ( !$product ) 
 				{	
 					$product = Mage::getModel('catalog/product');
@@ -202,10 +206,11 @@ class Import
 					$product->setVisibility(4);
 					$new = true;
 				} 
+
 				$product->setName( $item->attributes()->name );
                                 if((int)$item->attributes()->delivery_days >= 0)
                                    $product->setDeliveryDays($item->attributes()->delivery_days);
-				$product->setPrice($item->attributes()->price);
+				$product->setPrice($item->attributes()->VATprice);
                                 $product->setWeight($item->attributes()->weight);
 				$product->setStockData( array( 'is_in_stock' => $stock, 'qty' => $qty ) );
                                 $product->setPriceFormula(serialize($priceFormula));
@@ -230,6 +235,9 @@ class Import
                                            ->setIsActive(1);
 
                                 $firstlevel->save();
+
+                                if($firstlevel->getParentId() != 577)
+                                  $firstlevel->move(577,null);
                                   
                                 if(isset($cats[1]) && strlen($cats[1]) > 0){
                                 $secondlevel = Mage::getModel('catalog/category')->getCollection()
@@ -292,6 +300,7 @@ class Import
                                     $maincat->setName($item->attributes()->class)
                                             ->setIsActive(1);
                                     $maincat->save();
+                                    $maincat->move(577,null);
                                     $product->setCategoryIds(array($maincat->getId()));
                                   } 
                                 }
@@ -306,12 +315,14 @@ class Import
 					$product->save();
 				}
 				catch (Exception $e)
-				{}
+				{ Mage::log('error '.$e->getMessage());}
 			} 
                         Mage::log('['.++$i.'] product '.$product->getId().' imported');
+                        //echo('['.++$i.'] product '.$product->getId().' imported');
 		}
               
                 Mage::log('product import finished');
+                //echo('product import finished');
 
                 /******CUSTOMERS*******/
              	$data = (!empty($this->customer_items->customers->customer)) ? $this->customer_items->customers->customer : $this->customer_items ;
@@ -354,6 +365,7 @@ class Import
                       
                    $customer->save();
                    Mage::log('customer '.$customer->getId().' imported');
+                   //echo('customer '.$customer->getId().' imported');
                 }
                 /****REINDEX*****/
 
@@ -362,11 +374,11 @@ class Import
                          $process->reindexEverything();
                 }
                 Mage::log('customer import finished');
+                //echo('customer import finished');
 	}	
 	
 }
 
-try{
 $import = new Import ( );
 
 $import->loadData();
@@ -374,7 +386,6 @@ $import->loadData();
 $import->parseResponse();
 
 $import->process();
-}catch(Exception $e){die($e->getMessage());}
 
 echo 'done';
 
