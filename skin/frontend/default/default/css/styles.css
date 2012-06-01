@@ -522,8 +522,8 @@ tr.summary-details-excluded { font-style:italic; }
 .header-container .top-container a { font-size:11px; color:#ebbc58; }
 
 /********** < Navigation */
-.nav-container { background:#0a263d url(../images/bkg_nav0.jpg) 50% 0 repeat-y; }
-#nav { width:918px; margin:0 auto; padding:0 16px; font-size:13px; }
+.nav-container { /*background:#0a263d url(../images/bkg_nav0.jpg) 50% 0 repeat-y;*/ }
+#nav { width:195px; /*width:918px; margin:0 auto; padding:0 16px; font-size:13px;*/ }
 
 /* All Levels */ /* Style consistent throughout all nav levels */
 #nav li { position:relative; text-align:left; }
@@ -537,35 +537,40 @@ tr.summary-details-excluded { font-style:italic; }
 
 /* 0 Level */
 #nav li { float:left; }
-#nav li.active a { color:#d96708; }
-#nav a { float:left; padding:5px 12px 6px 8px; color:#a7c6dd; font-weight:bold; }
-#nav li.over a,
-#nav a:hover { color:#d96708; }
+#nav a { float:left; padding:5px 12px 6px 8px; font-weight:bold; }
+/*#nav li.over a,*/
+#nav li.level0 a:hover { /*color:#d96708;*/ }
 
+.level-top.active a{ color: yellow;}
+.lvl-none{ color:black !important;}	
+	
 /* 1st Level */
 #nav ul li,
 #nav ul li.active { float:none; margin:0; padding-bottom:1px; background:#ecf3f6 url(../images/bkg_nav1.gif) 0 100% repeat-x; }
 #nav ul li.last { background:#ecf3f6; padding-bottom:0; }
-
 #nav ul a,
 #nav ul a:hover { float:none; padding:0; background:none; }
 #nav ul li a { font-weight:normal !important; }
 
+.lvl1{color:green !important;}
+ 
 /* 2nd Level */
 #nav ul,
 #nav div { position:absolute; width:15em; top:27px; left:-10000px; border:1px solid #899ba5; }
 #nav div ul { position:static; width:auto; border:none; }
 
-/* 3rd+ Level */
+.lvl2{color:red !important;}	
+	
+/* 3rd+ Level 
 #nav ul ul,
 #nav ul div { top:5px; }
 
 #nav ul li a { background:#ecf3f6; }
 #nav ul li a:hover { background:#d5e4eb; }
 #nav ul li a,
-#nav ul li a:hover { color:#2f2f2f !important; }
+#nav ul li a:hover { color:#2f2f2f ; }
 #nav ul span,
-#nav ul li.last li span { padding:3px 15px 4px 15px; }
+#nav ul li.last li span { padding:3px 15px 4px 15px; }*/
 
 /* Show menu */
 #nav li ul.shown-sub,
