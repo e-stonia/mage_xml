@@ -69,7 +69,7 @@
      }.bind(productAddToCartForm_<?php echo $_product->getId(); ?>);
 </script>
                     <?php else: ?>
-                        <p class="availability out-of-stock"><span><?php echo $this->__('%s day(s)',$_product->getDeliveryDays()) ?></span></p>
+                        <p class="availability out-of-stock"><span><?php echo $this->__('%s päeva',$_product->getDeliveryDays()) ?></span> </p>
                       <form action="<?php echo $this->getAddToCartUrl($_product) ?>" method="post" id="product_addtocart_form_<?php echo $_product->getId(); ?>">
 <input name="qty" type="text" class="input-text qty" id="qty" maxlength="12" value="<?php echo $this->getMinimalQty($_product) ?>" />
 <button class=form-button" onclick="productAddToCartForm_<?php echo $_product->getId(); ?>.submit()"><span>Lisa korvi</span></button>
