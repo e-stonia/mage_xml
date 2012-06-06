@@ -28,9 +28,8 @@
 /**
  * Customer login form template
  *
- * @see app/design/frontend/base/default/template/customer/form/login.phtml
+ * @see Mage_Customer_Block_Form_Login
  */
-/** @var $this Mage_Customer_Block_Form_Login */
 ?>
 <div class="account-login">
     <div class="page-title">
@@ -42,7 +41,7 @@
             <div class="col-1 new-users">
                 <div class="content">
                     <h2><?php echo $this->__('New Customers') ?></h2>
-                    <p><?php echo $this->__('By creating an account with our store, you will be able to move through the checkout process faster, store multiple shipping addresses, view and track your orders in your account and more.') ?></p>
+                    <p>Registreerumiseks palun kontakteeruge Farron Tehnikaga.</p>
                 </div>
             </div>
             <div class="col-2 registered-users">
@@ -62,9 +61,7 @@
                                 <input type="password" name="login[password]" class="input-text required-entry validate-password" id="pass" title="<?php echo $this->__('Password') ?>" />
                             </div>
                         </li>
-                        <?php echo $this->getChildHtml('persistent.remember.me'); ?>
                     </ul>
-                    <?php echo $this->getChildHtml('persistent.remember.me.tooltip'); ?>
                     <p class="required"><?php echo $this->__('* Required Fields') ?></p>
                 </div>
             </div>
@@ -72,7 +69,7 @@
         <div class="col2-set">
             <div class="col-1 new-users">
                 <div class="buttons-set">
-                    <button type="button" title="<?php echo $this->__('Create an Account') ?>" class="button" onclick="window.location='<?php echo Mage::helper('persistent')->getCreateAccountUrl($this->getCreateAccountUrl()) ?>';"><span><span><?php echo $this->__('Create an Account') ?></span></span></button>
+                    &nbsp;
                 </div>
             </div>
             <div class="col-2 registered-users">
@@ -82,9 +79,6 @@
                 </div>
             </div>
         </div>
-        <?php if (Mage::helper('checkout')->isContextCheckout()): ?>
-            <input name="context" type="hidden" value="checkout" />
-        <?php endif; ?>
     </form>
     <script type="text/javascript">
     //<![CDATA[
