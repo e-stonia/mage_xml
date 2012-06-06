@@ -84,6 +84,7 @@
 </script>
                     <?php endif; ?>
                     <div class="desc std">
+                        <strong>Tootekood: </strong><?php echo nl2br($_product->getSku()) ?><br />
                         <?php echo $_helper->productAttribute($_product, $_product->getShortDescription(), 'short_description') ?>
                         <a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $_productNameStripped ?>" class="link-learn"><?php echo $this->__('Learn More') ?></a>
                     </div>
