@@ -16,7 +16,8 @@
    <models>
       <catalog>
          <rewrite>
-            <product_type_price>IVVYRU_Sync_Model_Catalog_Product_Type_Price</product_type_price> 
+            <!--product_type_price>IVVYRU_Sync_Model_Catalog_Product_Type_Price</product_type_price--> 
+            <category_attribute_backend_image>IVVYRU_Sync_Model_Category_Attribute_Backend_Image</category_attribute_backend_image>
          </rewrite> 
       </catalog> 
       <cataloginventory>
