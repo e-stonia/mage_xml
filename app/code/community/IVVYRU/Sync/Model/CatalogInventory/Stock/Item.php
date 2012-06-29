@@ -30,9 +30,9 @@ class IVVYRU_Sync_Model_CatalogInventory_Stock_Item extends Mage_CatalogInventor
         if ($this->getMinSaleQty() && ($qty) < $this->getMinSaleQty()) {
             $result->setHasError(true)
                 ->setMessage(
-                    $_helper->__('The minimum quantity allowed for purchase is %s.', $this->getMinSaleQty() * 1)
+                    $_helper->__('Minimaalne kogus seda toodet tellida on %s.', $this->getMinSaleQty() * 1)
                 )
-                ->setQuoteMessage($_helper->__('Some of the products cannot be ordered in requested quantity.'))
+                ->setQuoteMessage($_helper->__('Osasid tooteid ei saa sellises mahus tellida.'))
                 ->setQuoteMessageIndex('qty');
             return $result;
         }
@@ -40,9 +40,9 @@ class IVVYRU_Sync_Model_CatalogInventory_Stock_Item extends Mage_CatalogInventor
         if ($this->getMaxSaleQty() && ($qty) > $this->getMaxSaleQty()) {
             $result->setHasError(true)
                 ->setMessage(
-                    $_helper->__('The maximum quantity allowed for purchase is %s.', $this->getMaxSaleQty() * 1)
+                    $_helper->__('Maksimaalne kogus, mida saab tellida, on %s.', $this->getMaxSaleQty() * 1)
                 )
-                ->setQuoteMessage($_helper->__('Some of the products cannot be ordered in requested quantity.'))
+                ->setQuoteMessage($_helper->__('Osasid tooteid ei saa sellises mahus tellida.'))
                 ->setQuoteMessageIndex('qty');
             return $result;
         }
@@ -97,16 +97,16 @@ class IVVYRU_Sync_Model_CatalogInventory_Stock_Item extends Mage_CatalogInventor
                     if ($this->getBackorders() == Mage_CatalogInventory_Model_Stock::BACKORDERS_YES_NOTIFY) {
                         if (!$this->getIsChildItem()) {
                             $result->setMessage(
-                                $_helper->__('This product is not available in the requested quantity. %s of the items will be backordered.', ($backorderQty * 1))
+                                $_helper->__('Seda toodet ei saa soovitud koguses tellida. %s toodet tellitakse.', ($backorderQty * 1))
                             );
                         } else {
                             $result->setMessage(
-                               $_helper->__('"%s" is not available in the requested quantity. %s of the items will be backordered.', $this->getProductName(), ($backorderQty * 1))
+                               $_helper->__('"%s" ei saa soovitud koguses tellida. %s toodet tellitakse.', $this->getProductName(), ($backorderQty * 1))
                             );
                         }
                     } elseif (Mage::app()->getStore()->isAdmin()) {
                         $result->setMessage(
-                            $_helper->__('The requested quantity for "%s" is not available.', $this->getProductName())
+                            $_helper->__('Soovitud kogus "%s" ei ole saadaval.', $this->getProductName())
                         );
                     }
                 }
