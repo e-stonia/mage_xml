@@ -30,7 +30,7 @@ class Moak_Vip_Model_Observer
 			{
 				if ( $item->getQtyToInvoice() > 0)
 				{
-					$this->body.= '<line item="'.$item->getSku().'" price="'.$item->getPrice().'" vatcode="1" qty="1" name="'.$item->getName().'" discount="0" />';
+					$this->body.= '<line item="'.$item->getSku().'" price="'.$item->getPrice().'" vatcode="1" qty="'.$item->getQtyToInvoice().'" name="'.$item->getName().'" discount="0" />';
 				}
 			}
 			$this->body.= '</order>';
