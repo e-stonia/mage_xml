@@ -22,7 +22,7 @@ class Moak_Vip_Model_Observer
 			$name = $order->getCustomerName();
 			
 			$customer = Mage::getModel('customer/customer')->load( $cid );
-			$this->body = '<order id="'.$id.'" date="'.date('Y-m-d').'" customer_code="'.$cid.'" customer_name="'.$name.'" email="'.$customer->getEmail().'">';
+			$this->body = '<order id="'.$id.'" date="'.date('Y-m-d').'" customer_code="'.$customer->getCode().'" customer_name="'.$name.'" email="'.$customer->getEmail().'">';
 
 			$items = $order->getAllItems();
 			
