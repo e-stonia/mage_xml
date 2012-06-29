@@ -18,6 +18,10 @@ class Import
 	private $product_url = 'https://directo.gate.ee/xmlcore/farron_tehnika/transport/xmlcore.asp?get=1&what=item';
         
         private $customer_url = 'https://directo.gate.ee/xmlcore/farron_tehnika/transport/xmlcore.asp?get=1&what=customer';
+        
+        private $save_dir = 'var/xml';
+         
+        private $product_file = 'product';
 	
 	private $product_response;
 
@@ -39,7 +43,7 @@ class Import
 						: $this->product_url."&ts={$this->date}&key={$this->key}";
 
 		$this->customer_url = (isset($_GET['full']))
-	//	$this->customer_url = (1)
+//		$this->customer_url = (1)
 						? $this->customer_url."&key={$this->key}"
 						: $this->customer_url."&ts={$this->date}&key={$this->key}";
 						
@@ -91,6 +95,9 @@ class Import
 			$this->product_response = curl_exec ( $ch );
 			if(curl_errno( $ch )) throw new Exception('Curl error: ' . curl_error( $ch ));
 			curl_close ( $ch );
+                        $product_fh = fopen($this->save_dir.'/'.$this->product_file.time().'.xml','w') or die("can't open file");
+                        fwrite($product_fh,$this->product_response);
+                        fclose($product_fh);
 		}
 
 		$ct = curl_init ();
@@ -144,7 +151,9 @@ class Import
                 $i = 0;
 		foreach ($data AS $item)
 		{
-                 //if(++$i > 10) break; 
+                 Mage::log('  item import start '.$item->attributes()->code);
+
+                 ++$i; 
 
 			$qty = 0;
 			if (!empty($item->stocklevels))
@@ -163,6 +172,7 @@ class Import
 				}
 			}
                          
+                        Mage::log('  stock calc finish item # '.$item->attributes()->code);
                         $priceFormula = array();
 
                         if(!empty($item->prices))
@@ -170,13 +180,19 @@ class Import
                                   foreach($prices->price as $price)
                                          $priceFormula[] = array('formula' => (string)$price->attributes()->formula, 'price' => (string)$price->attributes()->price);
 			
+                        Mage::log('  price formula finish item # '.$item->attributes()->code);
                         $cats = array();
-
                         if(!empty($item->datafields))
                            foreach($item->datafields as $fields)
-                              foreach($fields->data as $field)
-                                     $cats[] = (string)$field->attributes()->content;
-
+                              foreach($fields->data as $field){
+                                     if($field->attributes()->code == 'VALDKOND')
+                                        $cats[0] = (string)$field->attributes()->content;
+                                     elseif($field->attributes()->code == 'KAUBAGRUPP')
+                                        $cats[1] = (string)$field->attributes()->content;
+                              }
+                            
+                        Mage::log('  category array construction finish item # '.$item->attributes()->code);
+                                 
 			$stock = ( $qty > 0 ) ? 1 : 0 ;			
 							
 			if (!empty($item->attributes()->name))
@@ -192,7 +208,6 @@ class Import
 					$product = Mage::getModel('catalog/product')->load( $id );
 				}
 				
-                                //if($_product->getId() < 950) continue;
 				if ( !$product ) 
 				{	
 					$product = Mage::getModel('catalog/product');
@@ -216,14 +231,26 @@ class Import
                                 $product->setPriceFormula(serialize($priceFormula));
 				
                                 /******CATEGORY HANDLING********/
-                                $_root_cat_model = Mage::getModel('catalog/category')->load(577);
+                                $_root_cat_id = 2;
+                                $_root_cat_model = Mage::getModel('catalog/category')->load($_root_cat_id);
                                        
+                              try{
+                              Mage::log('  about to construct category item # '.$item->attributes()->code);
                               if(count($cats) > 0){
-                                $firstlevel = Mage::getModel('catalog/category')->getCollection()
+                                $firstlevel = null;
+                                foreach(Mage::getModel('catalog/category')->getCategories($_root_cat_id) as $_curr_cat){
+                                 if($_curr_cat->getName() == $cats[0]){
+                                   $firstlevel = Mage::getModel('catalog/category')->load($_curr_cat->getId());
+                                   break;
+                                 }
+                                }
+                               
+                                 Mage::log('  category first level item # '.$item->attributes()->code.'  cat name '.$cats[0]);
+                                /*$firstlevel = Mage::getModel('catalog/category')->getCollection()
                                                                                 ->setStoreId(Mage::app()->getStore(true)->getId())
                                                                                 ->addAttributeToSelect('*')
                                                                                 ->addAttributeToFilter('name',$cats[0])
-                                                                                ->getFirstItem();
+                                                                                ->getFirstItem();*/
 
                                 if(!($firstlevel && $firstlevel->getId()>0)){
                                    $firstlevel = Mage::getModel('catalog/category');
@@ -236,15 +263,22 @@ class Import
 
                                 $firstlevel->save();
 
-                                if($firstlevel->getParentId() != 577)
-                                  $firstlevel->move(577,null);
-                                  
+                                Mage::log('  saved category first level item # '.$item->attributes()->code.'  cat name '.$cats[0]);
                                 if(isset($cats[1]) && strlen($cats[1]) > 0){
-                                $secondlevel = Mage::getModel('catalog/category')->getCollection()
+                                $secondlevel = null;
+                                foreach(Mage::getModel('catalog/category')->getCategories($firstlevel->getId()) as $_curr_cat){
+                                 if($_curr_cat->getName() == $cats[1]){
+                                  $secondlevel = Mage::getModel('catalog/category')->load($_curr_cat->getId());
+                                  break;        
+                                 }   
+                                }  
+
+                                Mage::log('  category second level item # '.$item->attributes()->code.'  cat name '.$cats[1]);
+                                /*$secondlevel = Mage::getModel('catalog/category')->getCollection()
                                                                                  ->setStoreId(Mage::app()->getStore(true)->getId())
                                                                                  ->addAttributeToSelect('*')
                                                                                  ->addAttributeToFilter('name',$cats[1])
-                                                                                 ->getFirstItem();
+                                                                                 ->getFirstItem();*/
                                   
                                 if(!($secondlevel && $secondlevel->getId()>0)){
                                      $secondlevel = Mage::getModel('catalog/category');
@@ -256,12 +290,23 @@ class Import
 
                                 $secondlevel->save(); 
                                       
-                                $thirdlevel = Mage::getModel('catalog/category')->getCollection()
+                                Mage::log('  saved category second level item # '.$item->attributes()->code.'  cat name '.$cats[1]);
+                                $thirdlevel = null;
+                                if(!empty($item->attributes()->class)){
+                                foreach(Mage::getModel('catalog/category')->getCategories($secondlevel->getId()) as $_curr_cat){
+                                  if($_curr_cat->getName() == $item->attributes()->class){
+                                    $thirdlevel = Mage::getModel('catalog/category')->load($_curr_cat->getId());
+                                    break; 
+                                  }  
+                                }
+
+                                Mage::log('  category third level item # '.$item->attributes()->code.'  cat name '.$item->attributes()->class);
+                                /*$thirdlevel = Mage::getModel('catalog/category')->getCollection()
                                                                                  ->setStoreId(Mage::app()->getStore(true)->getId())
                                                              ->addAttributeToSelect('*')
                                                              ->addAttributeToFilter('name',$item->attributes()->class)
-                                                             ->getFirstItem();
-                               if(!($thirdlevel->getId()>0)){
+                                                             ->getFirstItem();*/
+                               if(!($thirdlevel && $thirdlevel->getId()>0)){
                                      $thirdlevel = Mage::getModel('catalog/category');
                                      $thirdlevel->setPath($secondlevel->getPath());
                                }
@@ -269,13 +314,28 @@ class Import
                                                ->setIsActive(1);
 
                               $thirdlevel->save();
-		              $product->setCategoryIds(array($firstlevel->getId(),$secondlevel->getId(),$thirdlevel->getId()));
+                              Mage::log('  saved category third level item # '.$item->attributes()->code.'  cat name '.$item->attributes()->class);
+                              }
+		              $product->setCategoryIds(array(($firstlevel ? $firstlevel->getId() : null)
+                                                           , ($secondlevel ? $secondlevel->getId() : null)
+                                                           , ($thirdlevel ? $thirdlevel->getId() : null)));
                               }else{
-                                  $secondlevel = Mage::getModel('catalog/category')->getCollection()
+                                  $secondlevel = null;
+                                  if(!empty($item->attributes()->class)){
+                                  foreach(Mage::getModel('catalog/category')->getCategories($firstlevel->getId()) as $_curr_cat){
+                                    if($_curr_cat->getName() == $item->attributes()->class){
+                                     $secondlevel = Mage::getModel('catalog/category')->load($_curr_cat->getId()); 
+                                     break;
+                                    }
+                                  } 
+
+                                  Mage::log('  [2] category second level item # '.$item->attributes()->code.'  cat name '.$item->attributes()->class);
+
+                                  /*$secondlevel = Mage::getModel('catalog/category')->getCollection()
                                                                                  ->setStoreId(Mage::app()->getStore(true)->getId())
                                                              ->addAttributeToSelect('*')
                                                              ->addAttributeToFilter('name',$item->attributes()->class) 
-                                                             ->getFirstItem();
+                                                             ->getFirstItem();*/
                                   if(!($secondlevel && $secondlevel->getId()>0)){
                                      $secondlevel = Mage::getModel('catalog/category');
                                      $secondlevel->setPath($firstlevel->getPath());
@@ -284,15 +344,28 @@ class Import
                                   $secondlevel->setName($item->attributes()->class)
                                               ->setIsActive(1);
                                   $secondlevel->save();
-                                  $product->setCategoryIds(array($firstlevel->getId(),$secondlevel->getId()));
+
+                                  Mage::log('  [2] saved category second level item # '.$item->attributes()->code.'  cat name '.$item->attributes()->class);
+                                  }
+                                  $product->setCategoryIds(array(($firstlevel ? $firstlevel->getId() : null)
+                                                              ,  ($secondlevel ? $secondlevel->getId() : null)));
                                 }
                                 }else{
                                   if(!empty($item->attributes()->class)){
-                                    $maincat = Mage::getModel('catalog/category')->getCollection()
+                                    $maincat = null;
+                                    foreach(Mage::getModel('catalog/category')->getCategories($_root_cat_id) as $_curr_cat){
+                                       if($_curr_cat->getName() == $item->attributes()->class){
+                                        $maincat = Mage::getModel('catalog/category')->load($_curr_cat->getId());
+                                        break;  
+                                       }     
+                                    }     
+
+                                    Mage::log('  [3] category second level item # '.$item->attributes()->code.'  cat name '.$item->attributes()->class);
+                                    /*$maincat = Mage::getModel('catalog/category')->getCollection()
                                                                                  ->setStoreId(Mage::app()->getStore(true)->getId())
                                                              ->addAttributeToSelect('*')
                                                              ->addAttributeToFilter('name',$item->attributes()->class)
-                                                             ->getFirstItem();
+                                                             ->getFirstItem();*/
                                     if(!($maincat && $maincat->getId()>0)){
                                        $maincat = Mage::getModel('catalog/category');
                                        $maincat->setPath($_root_cat_model->getPath());
@@ -300,10 +373,14 @@ class Import
                                     $maincat->setName($item->attributes()->class)
                                             ->setIsActive(1);
                                     $maincat->save();
-                                    $maincat->move(577,null);
+
+                                    Mage::log('  [3] saved category second level item # '.$item->attributes()->code.'  cat name '.$item->attributes()->class);
                                     $product->setCategoryIds(array($maincat->getId()));
+ 
+                                    Mage::log('  [3] setCategoryId category second level item # '.$item->attributes()->code.'  cat name '.$item->attributes()->class);
                                   } 
                                 }
+                                }catch(Exception $e){Mage::log('error '.$e->getMessage());}
 				if (!empty($item->attributes()->description))
 				{
 					$product->setDescription($item->attributes()->description);
@@ -312,18 +389,20 @@ class Import
 				
 				try
 				{
+
+                                        Mage::log('  about to item # '.$item->attributes()->code);
 					$product->save();
 				}
 				catch (Exception $e)
 				{ Mage::log('error '.$e->getMessage());}
 			} 
-                        Mage::log('['.++$i.'] product '.$product->getId().' imported');
+                        Mage::log('['.$i.'] product '.$product->getId().' imported');
                         //echo('['.++$i.'] product '.$product->getId().' imported');
 		}
               
                 Mage::log('product import finished');
                 //echo('product import finished');
-
+                
                 /******CUSTOMERS*******/
              	$data = (!empty($this->customer_items->customers->customer)) ? $this->customer_items->customers->customer : $this->customer_items ;
                    
